@@ -6,6 +6,7 @@
 
 trigger:
 - stage
+- main
 
 variables:
 - name: system.debug

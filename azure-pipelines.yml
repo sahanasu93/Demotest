@@ -2,18 +2,87 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
+#hello
 
 trigger:
+- stage
 - main
 
+variables:
+- name: system.debug
+  value: true 
+
 pool:
-  vmImage: ubuntu-latest
+  vmImage: windows-latest
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: 'ArchiSteamFarm.sln'
+    feedsToUse: 'select'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: 'ArchiSteamFarm/ArchiSteamFarm.csproj'
+    arguments: '-c "Release" -f "net6.0" -o "out/generic"'
+
+- task: SonarCloudPrepare@1
+  inputs:
+    SonarCloud: 'Test'
+    organization: 'sahanaumesh'
+    scannerMode: 'MSBuild'
+    configMode: 'manual'
+    ProjectKey: 'sahanasu93_Demotest'
+    ProjectName: 'Demotest'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'ArchiSteamFarm.sln'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    projects: 'ArchiSteamFarm.Tests/ArchiSteamFarm.Tests.csproj'
+    arguments: '--configuration $(BuildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: test
+    projects: 'ArchiSteamFarm.Tests/ArchiSteamFarm.Tests.csproj'
+    arguments: '--configuration $(buildConfiguration) --logger trx --collect "Code coverage"'
+
+- task: PublishTestResults@2
+  inputs:
+    testRunner: VSTest
+    testResultsFiles: '**/*.trx'
+
+- task: SonarCloudAnalyze@1
+
+- task: SonarCloudPublish@1
+  inputs:
+    pollingTimeoutSec: '300'
+
+- task: CopyFiles@2
+  inputs:
+    Contents: 'out/generic/ArchiSteamFarm.zip'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: CopyFiles@2
+  inputs:
+    Contents: '.scannerwork/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: CopyFiles@2
+  inputs:
+    Contents: '.sqAnalysis/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'archi'
+    publishLocation: 'Container'

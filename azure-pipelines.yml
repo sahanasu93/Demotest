@@ -2,7 +2,6 @@
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
-#hello
 
 trigger:
 - stage
@@ -16,13 +15,13 @@ pool:
   vmImage: windows-latest
 
 steps:
-- task: DotNetCoreCLI@2
+- task: Restore code
   inputs:
     command: 'restore'
     projects: 'ArchiSteamFarm.sln'
     feedsToUse: 'select'
 
-- task: DotNetCoreCLI@2
+- task: Publish code
   inputs:
     command: 'publish'
     publishWebProjects: false
@@ -38,24 +37,24 @@ steps:
     ProjectKey: 'sahanasu93_Demotest'
     ProjectName: 'Demotest'
 
-- task: DotNetCoreCLI@2
+- task: Build code
   inputs:
     command: 'build'
     projects: 'ArchiSteamFarm.sln'
 
-- task: DotNetCoreCLI@2
+- task: Test code
   inputs:
     command: 'test'
     projects: 'ArchiSteamFarm.Tests/ArchiSteamFarm.Tests.csproj'
     arguments: '--configuration $(BuildConfiguration)'
 
-- task: DotNetCoreCLI@2
+- task: Test code coverage
   inputs:
-    command: test
+    command: 'test'
     projects: 'ArchiSteamFarm.Tests/ArchiSteamFarm.Tests.csproj'
     arguments: '--configuration $(buildConfiguration) --logger trx --collect "Code coverage"'
 
-- task: PublishTestResults@2
+- task: Publish
   inputs:
     testRunner: VSTest
     testResultsFiles: '**/*.trx'
@@ -66,22 +65,22 @@ steps:
   inputs:
     pollingTimeoutSec: '300'
 
-- task: CopyFiles@2
+- task: Copy artifacts
   inputs:
     Contents: 'out/generic/ArchiSteamFarm.zip'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
-- task: CopyFiles@2
+- task: Copy sonarcloud files
   inputs:
     Contents: '.scannerwork/*'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
-- task: CopyFiles@2
+- task: Copy sonarcloud analysis
   inputs:
     Contents: '.sqAnalysis/*'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
-- task: PublishBuildArtifacts@1
+- task: Publish BuildArtifacts
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'archi'

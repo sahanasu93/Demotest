@@ -42,7 +42,7 @@ steps:
     command: 'build'
     projects: 'ArchiSteamFarm.sln'
 
-- task: Test code
+- task: Testcode
   inputs:
     command: 'test'
     projects: 'ArchiSteamFarm.Tests/ArchiSteamFarm.Tests.csproj'

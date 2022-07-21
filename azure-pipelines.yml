@@ -50,7 +50,7 @@ steps:
 
 - task: Test code coverage
   inputs:
-    command: 'test'
+    command: test
     projects: 'ArchiSteamFarm.Tests/ArchiSteamFarm.Tests.csproj'
     arguments: '--configuration $(buildConfiguration) --logger trx --collect "Code coverage"'
 
